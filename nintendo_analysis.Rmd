@@ -1,6 +1,5 @@
 ---
 title: "Nintendo Discount Analysis"
-author: "Jerry"
 date: "04-06-2024"
 output: 
   html_document:
@@ -157,7 +156,7 @@ The recent release of <span class = "info"> **Steam's handheld gaming console ma
 I started by scraping for the current discounts directly from [Nintendo's current offers page](https://store.nintendo.com.au/au/nintendo-eshop/current-offers) to obtain Nintendo's discounted games. On the other hand, scraping data from [Steam's current offers page](https://steamdb.info/sales/) proved challenging and impractical due to the implementation of a CAPTCHA system to block bots on their website.   
 <br>
 
-To circumvent this, I adopted an alternative approach. I relied on information provided by [SteamSpy](https://steamspy.com/deal/), a third-party website that scrapes Steam discount data daily. However, SteamSpy only offers data for 200 discounted games at a time, despite not coverign the entirety of discounted games on the platform,  the dataset should still provide a comprehensive comparison of the discounting strategies between these two leading gaming companies.    
+To circumvent this, I adopted an alternative approach. I relied on information provided by [SteamSpy](https://steamspy.com/deal/), a third-party website that scrapes Steam discount data daily. The results from SteamSpy do match those on Steam. However, SteamSpy only offers data for 200 discounted games at a time, despite not coverign the entirety of discounted games on the platform,  the dataset should still provide a comprehensive comparison of the discounting strategies between these two leading gaming companies.    
 <br>
 
 Thereafter, involved mimicking unique [Metacritic's game ratings](https://www.metacritic.com/game/pac-man-99/) by identifying its URL pattern to retrieve information about the discounted games. Finally, I then exported the gathered data into a CSV file, which would be ready for further data cleaning and analysis in R.    
@@ -242,7 +241,7 @@ if (p_value_discount_abs < 0.05) {
 }
 ```
 
-For games originally priced between $50 and $100, Nintendo tends to offer discounts better than half price, while Steam usually offers less. Although Steam has more extreme outliers with exaggerated absolute discounts, but overall, their absolute dollar discount is still lower than Nintendo's. This hints that <span class="finding"> Steam might be intentionally heavily discounting few selected games to make it seem like they have better deals than Nintendo in terms of absolute dollar value. </span>  **I would advice Nintendo to <span class="solution"> place few games with extreme absolute dollar discount on the first page of their discount catalogue </span> to attract customers, the game doesn't need to be a popular, as long as its heavily discounted, it can catch the customer's attention**.       
+For games originally priced between $50 and $100, Nintendo tends to offer discounts better than half price, while Steam usually offers less. However, the difference in absolute dollar discount is still statistically insignificant. <span class="finding"> This suggests that Nintendo may be prioritising discounts on their initially lower-priced games. This strategy is effective because the potential loss from discounting is minimal, yet it enhances the attractiveness of their discounted catalog with significant percentage reductions. </span> **To make Nintendo's discount catalouge even more attractive, I would advise Nintendo to <span class="solution"> feature a select few games with substantial dollar discounts prominently on the first page of their discount catalogue. </span> These games don't necessarily need to be popular; the key is their significant absolute dollar discount, which can grab customers' attention. This approach can create the perception that Nintendo offers deeper discounts in terms of absolute value compared to platforms like Steam.**       
 <br>
 
 ### Percentage Discount
@@ -268,7 +267,7 @@ if (p_value_discount_per < 0.05) {
 }
 ```
 
-Nintendo offers significantly more discount percentage than Steam. The null hypothesis is rejected at the 5% significance level, suggesting strong evidence that Nintendo offers statistically more percentage discount than Steam. This is an interesting finding as <span class="finding"> Steam gives consumers the impression that they're more generous in discounting their game's than Nintendo, when in fact it is not for most cases. </span>    
+Nintendo offers significantly more discount percentage than Steam. The null hypothesis is rejected at the 5% significance level, suggesting strong evidence that Nintendo offers statistically more percentage discount than Steam. This may be a surprising finding to many gamers, <span class="finding"> Steam gives consumers the impression that they're more generous in discounting their game's than Nintendo, when in fact it is not for most cases. </span>    
 <br>
 
 I would recommend Nintendo to align more closely with Steam's discounting model. This could involve <span class="solution"> **reducing most of their games to between 30% and 40% during regular sales </span>, with an <span class="solution"> average discount mean controlled at approximately 50%**. </span> Conversely, Nintendo could then <span class="solution"> **create seasonal sales by increasing the discounts to the current distribution, with most games discounted at 80% to 90%, yielding an overall mean discount of around 70%** </span>.    
@@ -308,11 +307,8 @@ steam_top_genre
 ```
 </center>
 
-<span class="finding"> **Both Nintendo and Steam effectively target their respective audiences with their discount strategies**. </span> Nintendo, known for its family-oriented focus, discounts more  on genres like 2D Platformer, Puzzle, and Party games. In contrast, Steam, which caters to a more mature audience, frequently offers discounts on genres such as Survival, FPS, and Sandbox games.   
-<br>
-
-Notably, an analysis of the top genres and publishers shows that <span class="finding"> Steam and Nintendo rarely discount the same games simultaneously. </span> This differentiation in discounting items benefits both companies by reducing direct competition in their oligopolistic market.   
-<br>
+<span class="finding"> **Both Nintendo and Steam effectively target their respective audiences with their discount strategies**. </span> Nintendo, known for its family-oriented focus, discounts more  on genres like 2D Platformer, Puzzle, and Party games. In contrast, Steam, which caters to a more mature audience, frequently offers discounts on genres such as Survival, FPS, and Sandbox games.       
+<br>    
 
 ### Publisher
 
@@ -323,26 +319,26 @@ steam_top_pub
 ```
 </center>
 
-<span class="finding"> The top publishers on Steam are "Independent Developers" This is likely due to Steam's developer-friendly nature, making it easier for indie developers to offer significant discounts. </span> <span class="solution"> **Nintendo could potentially benefit from creating a more developer-friendly environment on their platform**. </span> By doing so, they could attract a wider range of game developers, <span class="info"> increase their customers demographic, and offer more substantial discounts from independent developers, </span> resulting in a more appealing discount catalog for their customers.    
+Analysis of the top genres and publishers shows that <span class="finding"> Steam and Nintendo rarely discount the same games simultaneously. </span> <span class="info">This differentiation in discounting items benefits both companies by reducing direct competition in their oligopolistic market. </span>   
 <br>
 
 ### Nintendo's Discounting Model
 
 ```{r}
-cat("Number of records in Nintendo model:", nrow(df_nin_cleaned_no_na), "\n")
+cat("Number of records in Nintendo model:", nrow(df_nin_cleaned), "\n")
 summary(nin_model)
 ```
 
-- Approximately 14.93% of the variability in discount percentage can be explained by the independent variables rating, popularity, and release date. Though the R-squared value is modest, the model's overall significance is supported by a significant F-statistic at the 95% confidence level.
-- **Rating**: For every one-unit increase in the rating, the discount percentage is expected to decrease by approximately 2.6994 units.
+- Approximately 10.27% of the variability in discount percentage can be explained by the independent variables rating, popularity, and release date. Though the R-squared value is modest, the model's overall significance is supported by a significant F-statistic at the 95% confidence level.
+- **Rating**: For every one-unit increase in the rating, the discount percentage is expected to decrease by approximately 1.812 units.
 - **Popularity**: While there's a slight negative trend, the effect of popularity on discount percentage lacks statistical significance at the 95% confidence level.
-- **Release Date**: For every one-unit increase in the release date, the discount percentage is expected to decrease by approximately 0.0068 units.   
+- **Release Date**: For every one-unit increase in the release date, the discount percentage is expected to decrease by approximately 0.0055 units.   
 <br>
 
 ### Steam's Discounting Model
 
 ```{r}
-cat("Number of records in Steam model:", nrow(df_steam_cleaned_no_na), "\n")
+cat("Number of records in Steam model:", nrow(df_steam_cleaned), "\n")
 summary(steam_model)
 ```
 

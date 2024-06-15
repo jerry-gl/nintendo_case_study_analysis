@@ -18,49 +18,33 @@ glimpse(df_steam)
 
 # Cleaning data
 
-## Removing Games Without Ratings
+## Filling empty cells and "tbd values "with "N/A"
+df_nin[df_nin == ""] <- "N/A"
+df_steam[df_steam == ""] <- "N/A"
+df_nin[df_nin == "tbd"] <- "N/A"
+df_steam[df_steam == "tbd"] <- "N/A"
+
+## Changing all "N/A" values to "NA" so it can be recognised by R.
+df_nin[df_nin == "N/A"] <- "NA"
+df_steam[df_steam == "N/A"] <- "NA"
+
+## Column Data Type Standardisation
 rating_columns <- c("meta_score", 
                     "meta_reviews", 
                     "user_score", 
                     "user_reviews")
 
 for (rating_column in rating_columns) {
-  df_nin[[rating_column]] <- df_nin[[rating_column]] %>%
-    ifelse(df_nin[[rating_column]] == "N/A", NA, .)
-  
-  df_steam[[rating_column]] <- df_steam[[rating_column]] %>%
-    ifelse(df_steam[[rating_column]] == "N/A", NA, .)
+  df_nin[[rating_column]] <- as.double(df_nin[[rating_column]])
+  df_steam[[rating_column]] <- as.double(df_steam[[rating_column]])
 }
 
-df_nin_removed_na <- na.omit(df_nin)
-df_steam_removed_na <- na.omit(df_steam)
+df_nin$release_date <- as.Date(df_nin$release_date, format = "%d-%m-%Y")
+df_steam$release_date <- as.Date(df_steam$release_date, format = "%d-%m-%Y")
 
-original_records_nin <- nrow(df_nin)
-original_records_steam <- nrow(df_steam)
-
-no_na_records_nin <- nrow(df_nin_removed_na)
-no_na_records_steam <- nrow(df_steam_removed_na)
-
-na_records_removed_nin <- original_records_nin - no_na_records_nin
-na_records_removed_steam <- original_records_steam - no_na_records_steam
-
-na_records_removed_nin_per <- na_records_removed_nin / original_records_nin
-na_records_removed_steam_per <- na_records_removed_steam / original_records_steam
-
-cat("Number of records removed for Nintendo:", na_records_removed_nin, "\n")
-cat("Percentage of records removed for Nintendo:", na_records_removed_nin_per * 100, "%\n")
-
-cat("Number of records removed for Steam:", na_records_removed_steam, "\n")
-cat("Percentage of records removed for Steam:", na_records_removed_steam_per * 100, "%\n")
-
-## Column Data Type Standardisation
-for (rating_column in rating_columns) {
-  df_nin_removed_na[[rating_column]] <- as.double(df_nin_removed_na[[rating_column]])
-  df_steam_removed_na[[rating_column]] <- as.double(df_steam_removed_na[[rating_column]])
-}
-
-df_nin_removed_na$release_date <- as.Date(df_nin_removed_na$release_date, format = "%d-%m-%Y")
-df_steam_removed_na$release_date <- as.Date(df_steam_removed_na$release_date, format = "%d-%m-%Y")
+## Remove records with absolutely no ratings
+df_nin_removed_na <- df_nin[!apply(df_nin[rating_columns], 1, function(x) all(is.na(x))), ]
+df_steam_removed_na <- df_steam[!apply(df_steam[rating_columns], 1, function(x) all(is.na(x))), ]
 
 ## Standardising Currency to $AUD
 df_nin_removed_na$discount_per <- round(
@@ -115,18 +99,19 @@ df_nin_removed_na_aud <- df_nin_removed_na_aud %>%
 df_steam_removed_na_aud <- df_steam_removed_na_aud %>%
   select(-c(meta_score, meta_reviews))
 
-## Column Renaming
+## Column Renaming, set unidentified publishers to "Independent Developers", and
+## remove any leftover records with NA values
 df_nin_cleaned <- df_nin_removed_na_aud %>%
-  rename(rating = user_score, popularity = user_reviews)
+  rename(rating = user_score, popularity = user_reviews) %>%
+  mutate(popularity = ifelse(is.na(popularity), 0, popularity),
+         publisher = ifelse(publisher == "NA", "Independent Developers", publisher)) %>%
+  na.omit()
 
 df_steam_cleaned <- df_steam_removed_na_aud %>%
-  rename(rating = user_score, popularity = user_reviews)
-
-df_nin_cleaned <- df_nin_cleaned %>%
-  mutate(popularity = ifelse(is.na(popularity), 0, popularity))
-
-df_steam_cleaned <- df_steam_cleaned %>%
-  mutate(popularity = ifelse(is.na(popularity), 0, popularity))
+  rename(rating = user_score, popularity = user_reviews) %>%
+  mutate(popularity = ifelse(is.na(popularity), 0, popularity),
+         publisher = ifelse(publisher == "NA", "Independent Developers", publisher)) %>%
+  na.omit()
 
 ## Cleaned data overview
 head(df_nin_cleaned)
@@ -177,7 +162,7 @@ og_sp_price_plot <- ggplot(df_combined, aes(x = original_price, y = special_pric
             fill = "yellow", alpha = transparency) + 
   geom_point(aes(color = source), alpha = transparency) +
   geom_abline(intercept = 0, slope = 0.5, linetype = "dashed", color = "black") + 
-  annotate("text", x = 140, y = 70, label = "50% discount line", color = "darkgreen") +
+  annotate("text", x = 100, y = 50, label = "50% discount line", color = "darkgreen") +
   ggtitle("Original Price vs. Special Price") +
   xlab("Original Price") +
   ylab("Special Price") +
@@ -285,16 +270,10 @@ nin_top_genre
 steam_top_genre
 
 # Publisher Analysis
-df_nin_cleaned <- df_nin_cleaned %>%
-  mutate(publisher = ifelse(publisher == "", '"Independent Developers"', publisher))
-
 nin_publisher_top_10 <- df_nin_cleaned %>%
   group_by(publisher) %>%
   summarise(count=n()) %>%
   top_n(10, wt=count)
-
-df_steam_cleaned <- df_steam_cleaned %>%
-  mutate(publisher = ifelse(publisher == "", '"Independent Developers"', publisher))
 
 steam_publisher_top_10 <- df_steam_cleaned %>%
   group_by(publisher) %>%
@@ -319,20 +298,21 @@ nin_top_pub
 steam_top_pub
 
 # Regression Analysis
-df_nin_cleaned_no_na <- df_nin_cleaned %>% na.omit()
-df_steam_cleaned_no_na <- df_steam_cleaned %>% na.omit()
+df_nin_cleaned$release_date_numeric <- as.numeric(df_nin_cleaned$release_date - as.Date("1970-01-01"))
+df_steam_cleaned$release_date_numeric <- as.numeric(df_steam_cleaned$release_date - as.Date("1970-01-01"))
 
-df_nin_cleaned_no_na$release_date_numeric <- as.numeric(df_nin_cleaned_no_na$release_date - as.Date("1970-01-01"))
-df_steam_cleaned_no_na$release_date_numeric <- as.numeric(df_steam_cleaned_no_na$release_date - as.Date("1970-01-01"))
+nin_model <- lm(discount_per ~ rating + popularity + release_date_numeric, df_nin_cleaned)
+steam_model <- lm(discount_per ~ rating + popularity + release_date_numeric, df_steam_cleaned)
 
-nin_model <- lm(discount_per ~ rating + popularity + release_date_numeric, df_nin_cleaned_no_na)
-steam_model <- lm(discount_per ~ rating + popularity + release_date_numeric, df_steam_cleaned_no_na)
-
-cat("Number of records in Nintendo model:", nrow(df_nin_cleaned_no_na), "\n")
+cat("Number of records in Nintendo model:", nrow(df_nin_cleaned), "\n")
 summary(nin_model)
 
-cat("Number of records in Steam model:", nrow(df_steam_cleaned_no_na), "\n")
+cat("Number of records in Steam model:", nrow(df_steam_cleaned), "\n")
 summary(steam_model)
 
+if (!dir.exists("output")) {
+  dir.create("output", recursive = TRUE)
+}
 
-
+write.csv(df_nin_cleaned, file = "output/nintendo_cleaned.csv", row.names = FALSE)
+write.csv(df_steam_cleaned, file = "output/steam_cleaned.csv", row.names = FALSE)
