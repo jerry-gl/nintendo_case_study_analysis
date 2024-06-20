@@ -1,9 +1,12 @@
 # Nintendo Case Study Analysis
 ![](images/nintendo.gif)
 
+## Data Visualisation
+[Nintendo vs. Steam Tableau](https://public.tableau.com/app/profile/data.monkey5133/viz/NintendovsSteamregularseasondiscounts/Nintendo)
+
 ## Objective
 
-The objective of this project is to analyse the games on discount within the Nintendo eShop, with the aim of deriving actionable insights and recommendations to enhance its efficacy and user experience.  
+The objective of this project is to analyse the games on discount within the Nintendo eShop, with the aim of deriving actionable insights and recommendations to enhance its efficacy and user experience.
 
 ## Recommendation
 

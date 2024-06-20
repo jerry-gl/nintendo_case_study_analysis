@@ -40,6 +40,10 @@ output:
 </style>
 <br>
 
+## Data Visualisation
+[Nintendo vs. Steam Tableau](https://public.tableau.com/app/profile/data.monkey5133/viz/NintendovsSteamregularseasondiscounts/Nintendo) 
+<br>
+
 ## Objective
 
 The objective of this project is to <span class="info"> analyse the games on discount within the Nintendo eShop </span>, with the aim of deriving actionable insights and recommendations to enhance its efficacy and user experience.   
